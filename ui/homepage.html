@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="./style_homepage.css">
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+ 
+</head>
+<body>
+    <input type="button" id="newPollbtn" value="New Poll" onclick="toggleNewPoll()">
+    <div class="container">
+        <div class="row" id="entryHolder">
+            <!-- <div class="col s6">
+                <div class="card blue-grey darken-1">
+                <div class="card-content white-text">
+                    <span class="card-title"></span>
+                    <p>I am a very simple card. I am good at containing small bits of information.
+                    I am convenient because I require little markup to use effectively.</p>
+                </div>
+                <div class="card-action waves-effect">
+                    <a href="#">Vote Now!</a>
+                </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    <div class="btm-text">
+        <h1 class="btm-text-tt"></h1>
+    </div>
+    <div class="splash-screen" id="sp-sc" onclick="toggleNewPoll()"></div>
+    <div class="newPoll" id="newpoll-modal">
+        <div class="container">
+            <h2>Create a new Poll</h2>
+            <input type="text" placeholder="title" id="title-e">
+            <label for="title-a">Title</label>
+            <input type="text" placeholder="Description" id="desc-e">
+            <label for="desc-a">Description</label>
+            <input type="text" placeholder="Option Alpha" id="alpha-e">
+            <label for="alpha-a">Option Alpha</label>
+            <input type="text" placeholder="Option Beta" id="beta-e">
+            <label for="beta-a">Option Beta</label>
+            <br>
+            <br>
+            <input type="button" class="btn" value="SUBMIT">
+        </div>
+    </div>
+    <script>
+        function getUserInfo(){
+            fetch(`/getUserInfo`, {
+                method: 'POST', //This could be any http method
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-access-token' : localStorage.getItem('token')
+                },
+            })
+            .then(stat=>stat.json())
+            .then((stat)=>{
+                document.getElementsByClassName('btm-text-tt')[0].innerHTML = `Hi, ${stat.fullname}`
+            })
+        }
+        function getPolls(){
+            fetch(`/getPolls`, {
+                method: 'POST', //This could be any http method
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-access-token' : localStorage.getItem('token')
+                },
+            })
+            .then(stat=>stat.json())
+            .then((stat)=>{
+                card = ''
+                for(let i=0;i<stat.length;i++){
+                    card += `<div class="col s6">
+                                <div class="card blue-grey darken-1">
+                                <div class="card-content white-text">
+                                    <span class="card-title">${stat[i].entry_title}</span>
+                                    <p>${stat[i].entry_desc}</p>
+                                </div>
+                                <div class="card-action waves-effect">
+                                    <a onclick="openVoteInfo('${stat[i]._id}')">Vote Now!</a>
+                                </div>
+                                </div>
+                            </div>
+                            `;
+                    console.log(stat[i])
+                }
+                document.getElementById('entryHolder').innerHTML = card
+            })
+        }
+        function newEntry(){
+            _entry_title = document.getElementById('title-e').value
+            _entry_desc = document.getElementById('desc-e').value
+            _alpha_title = document.getElementById('alpha-e').value
+            _beta_title = document.getElementById('beta-e').value
+            if(!_entry_title || !_entry_desc || !_alpha_title || !_beta_title){
+                alert("Field Empty!")
+                return
+            }
+            fetch(`/createEntry`, {
+                method: 'POST', //This could be any http method
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-access-token' : localStorage.getItem('token')
+                },
+                body: JSON.stringify({
+                    entry_title : _entry_title,
+                    entry_desc : _entry_desc,
+                    alpha_title : _alpha_title,
+                    beta_title : _beta_title,
+                }),
+            })
+            .then((stat)=>{
+                if(stat.status==200){
+                    alert("Entry Created Successfully!")
+                }
+            })
+            .catch(e=>alert("Failed : "+e))
+        }
+        function toggleNewPoll(){
+            document.getElementById('sp-sc').classList.toggle('visible')
+            document.getElementById('newpoll-modal').classList.toggle('visible')
+        }
+        function openVoteInfo(poll_id){
+            localStorage.setItem('poll_detail',poll_id)
+            open('/vote', '_self')
+        }
+        window.onload = function(){
+            getUserInfo()
+            getPolls()
+        }
+</script>
+</body>
+</html>

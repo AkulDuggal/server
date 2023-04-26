@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Links -->
+
+    <!-- Compiled and minified CSS -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"> -->
+
+    <!-- Compiled and minified JavaScript -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">         -->
+
+    <link rel="stylesheet" href="./style.css" >
+</head>
+<body>
+    <form class="login-form active" id="login-form">
+        <h1>Login</h1>
+        <div class="content">
+          <div class="input-field">
+            <input type="text" placeholder="username" autocomplete="nope" id="username-f">
+          </div>
+          <div class="input-field">
+            <input type="password" placeholder="Password" autocomplete="new-password" id="password-f">
+          </div>
+          <a href="#" class="link">Forgot Your Password?</a>
+        </div>
+        <div class="action">
+          <button onclick="toggleFormActive()">Register</button>
+          <button onclick="loginUsr()">Sign in</button>
+        </div>
+    </form>
+    <form class="login-form" id="register-form">
+        <h1>Register</h1>
+        <div class="content">
+          <div class="input-field">
+            <input type="text" placeholder="username" autocomplete="nope" id="username-na">
+          </div>
+          <div class="input-field">
+            <input type="password" placeholder="Password" autocomplete="nope" id="password-na">
+          </div>
+          <div class="input-field">
+              <label for="dob-na">Date of birth</label>
+            <input type="date" placeholder="date of birth" autocomplete="nope" id="dob-na">
+          </div>
+          <div class="input-field">
+            <input type="text" placeholder="Full Name" autocomplete="nope" id="fullname-na">
+          </div>
+          <div class="input-field">
+            <input type="text" placeholder="Gender (male/female)" autocomplete="nope" id="gender-na">
+          </div>
+        </div>
+        <div class="action">
+          <button onclick="toggleFormActive()">Login</button>
+          <button onclick="regUser()">Sign up</button>
+        </div>
+    </form>
+    <script>
+        let currentFormActive = 0;
+        function toggleFormActive(){
+            login = document.getElementById('login-form')
+            register = document.getElementById('register-form')
+            if(currentFormActive==0){
+                login.classList.remove('active')
+                register.classList.add('active')
+                currentFormActive++;
+            }
+            else{
+                register.classList.remove('active')
+                login.classList.add('active')
+                currentFormActive--;
+            }
+        }
+        function loginUsr(){
+            // get values
+            _username = document.getElementById('username-f').value
+            _password = document.getElementById('password-f').value
+            // verify
+            if(!_username || !_password){
+                alert("Field Left Empty!");
+                return
+            }
+            // send login request
+            fetch(`/login-api`, {
+                method: 'POST', //This could be any http method
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username : _username,
+                    password : _password
+                }),
+            })
+            .then((response) => {
+                // show results
+                if(response.status == 200){
+                    // Alert User
+                    alert("Login Success")
+                    // open homepage
+                    open('/homepage', '_self')
+                }
+                else{
+                    // alert user
+                    alert(`Login Un-Successfull : \n${response.json()}`)
+                }
+                return response.json()
+            })
+            .then((data) => {
+                localStorage.setItem('token', data.token)
+            });
+        }
+        function regUser(){
+            // get values
+            _username = document.getElementById('username-na').value
+            _password = document.getElementById('password-na').value
+            _dob = document.getElementById('dob-na').value
+            _gender = document.getElementById('gender-na').value
+            _fullname = document.getElementById('fullname-na').value
+
+            if(!_username || !_password || !_dob || !_gender || !_fullname){
+                alert("Filed left empty!")
+                return
+            }
+            // send login request
+            fetch(`/register-api`, {
+                method: 'POST', //This could be any http method
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username : _username,
+                    password : _password,
+                    fullname : _fullname,
+                    gender : _gender,
+                    dob : _dob,
+                }),
+            })
+            .then((response) => {
+                // show results
+                if(response.status == 200){
+                    // Alert User
+                    alert("Registration Success. Login Now!")
+                    toggleFormActive()
+                }
+                else{
+                    // alert user
+                    alert(`Registration Un-Successfull : \n${response.json().msg}`)
+                }
+                return response.json()
+            })
+        }
+    </script>
+</body>
+</html>
